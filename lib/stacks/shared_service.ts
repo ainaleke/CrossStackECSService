@@ -9,14 +9,11 @@ export interface SharedServiceStackProps extends StackProps {
 }
 
 export class SharedServiceStack extends Stack {
-   
     public readonly cluster: ecs.Cluster;
 
     constructor(scope: Construct, id: string, props : SharedServiceStackProps) {
         super(scope, id, props);
 
-       
-        // create and initialize ecs Cluster.
         this.cluster = new ecs.Cluster(this, 'EcsCluster', {
           vpc: props.vpc
         });
