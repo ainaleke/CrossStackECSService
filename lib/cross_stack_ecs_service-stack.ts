@@ -1,5 +1,6 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
+import { SharedServiceStack } from './stacks/shared_service';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export class CrossStackEcsServiceStack extends cdk.Stack {
