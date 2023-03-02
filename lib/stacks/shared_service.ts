@@ -14,11 +14,12 @@ export class SharedServiceStack extends Stack {
     constructor(scope: Construct, id: string, props : SharedServiceStackProps) {
         super(scope, id, props);
 
+        // create and initialize  ecs cluster.
         this.cluster = new ecs.Cluster(this, 'EcsCluster', {
           vpc: props.vpc
         });
 
-        
+        // initialize the ecs construct.
         const ecsConstruct = new EcsConstruct(this, 'ECSConstSharedServiceStack', {
             vpc: props.vpc,
             cluster: this.cluster,
