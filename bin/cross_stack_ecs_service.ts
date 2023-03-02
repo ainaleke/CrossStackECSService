@@ -3,10 +3,18 @@ import 'source-map-support/register';
 import * as cdk from 'aws-cdk-lib';
 import { CrossStackEcsServiceStack } from '../lib/cross_stack_ecs_service-stack';
 import { SharedServiceStack } from '../lib/stacks/shared_service';
+import { VpcStack } from '../lib/stacks/vpc_stack';
 
 const app = new cdk.App();
 
-const sharedInfra = new SharedServiceStack(app, 'SharedInfraStack');
+//since Vpc Creation takes time, we would only need to do this once.
+const vpcStack = new VpcStack(app, 'VpcStack');
+
+
+//initialize and pass in vpcStack to the sharedInfra Stack to keep Vpc stack separate
+const sharedInfra = new SharedServiceStack(app, 'SharedInfraStack', {
+    vpc: vpcStack.vpc
+});
 
 
 new CrossStackEcsServiceStack(app, 'CrossStackEcsServiceStack', {
