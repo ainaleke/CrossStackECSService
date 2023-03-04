@@ -1,4 +1,4 @@
-import { CfnOutput, StackProps } from "aws-cdk-lib";
+import { CfnOutput, Duration, StackProps } from "aws-cdk-lib";
 import { Construct } from "constructs";
 import * as ecs from "aws-cdk-lib/aws-ecs"
 import * as ec2 from "aws-cdk-lib/aws-ec2"
@@ -16,16 +16,25 @@ export class EcsConstruct extends Construct {
 
         const taskDefinition = new ecs.FargateTaskDefinition(this, 'TaskDef');
 
+        // add cloudWatch logs
+        const logging = new ecs.AwsLogDriver({
+            streamPrefix: "ecsSample",
+            mode: ecs.AwsLogDriverMode.NON_BLOCKING
+        });
+
         const container = taskDefinition.addContainer('webContainer', {
             image: ecs.ContainerImage.fromRegistry('amazon/amazon-ecs-sample'),
             memoryLimitMiB: 256,
+            // The containerName overrides the Id 'webContainer' if present
+            containerName: 'BusyLekeBox', 
+            logging
         });
 
         container.addPortMappings({
             containerPort: 80,
             protocol: ecs.Protocol.TCP
         });
-
+        
         // create ecs service
         const service = new ecs.FargateService(this, "EcsService", {
             cluster: props.cluster,
@@ -43,12 +52,21 @@ export class EcsConstruct extends Construct {
             port: 80,
         });
 
-        // targets to add to this target group.
+        // Attach LB to ECS Fargate Service.
         listener.addTargets('ECS', {
             port: 80,
             targets: [service],
+            // health check
+            healthCheck: {
+                interval: Duration.seconds(60),
+                path: "/health",
+                timeout: Duration.seconds(5)
+            }
           });
 
-        new CfnOutput(this, 'LoadBalancerDNS', {value: loadBalancer.loadBalancerDnsName});
+        // Assign Loabalancer a name
+        new CfnOutput(this, 'LoadBalancerDNS', {
+            value: loadBalancer.loadBalancerDnsName
+        });
     }
 }
