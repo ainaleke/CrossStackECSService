@@ -4,6 +4,10 @@ import * as ecs from "aws-cdk-lib/aws-ecs"
 import * as ec2 from "aws-cdk-lib/aws-ec2"
 import { ICluster } from "aws-cdk-lib/aws-ecs";
 import * as elbv2 from "aws-cdk-lib/aws-elasticloadbalancingv2";
+import { DockerImage } from "aws-cdk-lib/aws-stepfunctions-tasks";
+import { DockerImageAsset } from "aws-cdk-lib/aws-ecr-assets";
+import * as ecr from "aws-cdk-lib/aws-ecr";
+import path = require("path");
 
 export interface EcsConstructProps extends StackProps {
     vpc: ec2.IVpc;
@@ -22,8 +26,13 @@ export class EcsConstruct extends Construct {
             mode: ecs.AwsLogDriverMode.NON_BLOCKING
         });
 
+        // this would create a Docker Image asset using the dockerfile in the directory myImage
+        const asset = new DockerImageAsset(this, 'MyBuildImage', {
+            directory: path.join(__dirname, '../../myImage')
+        });
+
         const container = taskDefinition.addContainer('webContainer', {
-            image: ecs.ContainerImage.fromRegistry('amazon/amazon-ecs-sample'),
+            image: ecs.ContainerImage.fromDockerImageAsset(asset),  //ecs.ContainerImage.fromRegistry('amazon/amazon-ecs-sample'),
             memoryLimitMiB: 256,
             // The containerName overrides the Id 'webContainer' if present
             containerName: 'BusyLekeBox', 
